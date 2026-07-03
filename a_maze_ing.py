@@ -3,6 +3,7 @@ class Cell:
         self.walls = 0b1111
         self.visited = False
 
+
 class MazeGenerator:
     def __init__(self, width: int, height: int) -> None:
         self.width = width
@@ -27,9 +28,8 @@ class MazeGenerator:
                 file.write("\n")
 
 
-
 def main() -> None:
-    maze = MazeGenerator(10,10)
+    maze = MazeGenerator(10, 10)
     maze.create_grid()
     maze.export("maze.txt")
 
