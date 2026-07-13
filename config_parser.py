@@ -21,5 +21,20 @@ class ConfigParser:
 
         return config
 
-    def validation(self) -> bool:
+    def validation(self, config: dict[str, str]) -> bool:
+        keys = ["WIDTH", "HEIGHT", "ENTRY", "EXIT", "OUTPUT_FILE", "PERFECT"]
+        for key in keys:
+            if key not in config:
+                raise ValueError(f"Missing key: {key}")
+
+        for key in config:
+            if key not in keys:
+                raise ValueError(f"Unknown key: {key}")
+
+        try:
+            self.width = int(config["WIDTH"])
+            self.height = int(config["HEIGHT"])
+        except ValueError:
+            print("WIDTH and HIGHT must be integers")
+
         return True
