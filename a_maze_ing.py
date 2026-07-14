@@ -32,11 +32,12 @@ class MazeGenerator:
 
 
 def main() -> None:
-    maze = MazeGenerator(10, 10)
+    config = config_parser.ConfigParser("default_config.txt")
+    config.load()
+
+    maze = MazeGenerator(config.width, config.height)
     maze.create_grid()
     maze.export("maze.txt")
-    config = config_parser.ConfigParser("default_config.txt")
-    print(config.parse())
 
 
 if __name__ == "__main__":
