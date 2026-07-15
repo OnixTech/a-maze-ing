@@ -28,7 +28,9 @@ class ConfigParser:
         return config
 
     def _validation(self, config: dict[str, str]) -> None:
+        # Keys Expected
         keys = ["WIDTH", "HEIGHT", "ENTRY", "EXIT", "OUTPUT_FILE", "PERFECT"]
+
         for key in keys:
             if key not in config:
                 raise ValueError(f"Missing key: {key}")
@@ -37,6 +39,7 @@ class ConfigParser:
             if key not in keys:
                 raise ValueError(f"Unknown key: {key}")
 
+        # Values checking for WIDTH and HEIGHT
         try:
             self.width = int(config["WIDTH"])
             self.height = int(config["HEIGHT"])
@@ -45,7 +48,21 @@ class ConfigParser:
                 "WIDTH and HeIGHT must be integers"
             ) from err
 
+        # Tupple checking
         self._tuple_validation(config)
+
+        # Output file chicking
+        file = config["OUTPUT_FILE"].split(".")
+        if len(file) != 2:
+            raise ValueError("OUTPUT_FILE must be 'filename.txt'")
+        else:
+            if file[1] != "txt":
+                raise ValueError("File format must be 'txt'")
+
+        # Perfect checking
+        booleans = ["True", "False"]
+        if config["PERFECT"] not in booleans:
+            raise ValueError("PERFECT must be 'True' or 'False'")
 
     def _tuple_validation(self, config: dict[str, str]) -> None:
         entry = config["ENTRY"].split(",")
@@ -63,4 +80,4 @@ class ConfigParser:
         except ValueError as err:
             raise ValueError(
                 "Entry and EXIT coordinates must be integers"
-                ) from err
+            ) from err
