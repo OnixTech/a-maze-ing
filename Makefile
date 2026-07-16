@@ -5,22 +5,16 @@ CONFIG := default_config.txt
 SRC = ./a_maze_ing.py ./config_parser.py
 
 SYNC := .synced
-INSTALL := .uv_installed
 
+run: install
+	$(PYTHON) $(MAIN) $(CONFIG)
 
-$(INSTALL): flake.lock
-	python -m pip install uv
-	@touch $(INSTALL)
+install: $(SYNC)
 
 $(SYNC): pyproject.toml
 	uv sync || pip install uv && uv sync
 	@touch $(SYNC)
-
-install: $(SYNC)
 	
-run: install
-	$(PYTHON) $(MAIN) $(CONFIG)
-
 debug: $(SYNC)
 	$(PYTHON) -n pdb $(MAIN) $(CONFIG)
 
@@ -32,9 +26,9 @@ clean:
 	rm -f maze.txt
 
 lint: $(SYNC)
-	ruff check
-	flake8 .
-	mypy . \
+	ruff check $(SRC)
+	flake8 $(SRC)
+	mypy $(SRC) \
 		--warn-return-any \
 		--warn-unused-ignores \
 		--ignore-missing-imports \
@@ -42,8 +36,15 @@ lint: $(SYNC)
 		--check-untyped-defs
 
 lint-strict: $(SYNC)
-	ruff check 
-	flake8 .
-	mypy . --strict
+	ruff check $(SRC)
+	flake8 $(SRC)
+	mypy $(SRC) --strict
 
-.PHONY: install run debug clean lint lint-strict
+format:
+	ruff format $(SRC)
+
+analyze:
+	$(PYTHON) ./maze_analyzer.py maze.txt
+	
+
+.PHONY: install run debug clean lint lint-strict format analyze
