@@ -1,29 +1,48 @@
-PYTHON = python3
-MAIN = a_maze_ing.py
-CONFIG = default_config.txt
+PYTHON := uv run python
+MAIN := a_maze_ing.py
+CONFIG := default_config.txt
 
-install:
-	$(PYTHON) -m pip install -r requirements.txt
+SRC = ./a_maze_ing.py ./config_parser.py
 
-run:
+SYNC := .synced
+INSTALL := .uv_installed
+
+
+$(INSTALL): flake.lock
+	python -m pip install uv
+	@touch $(INSTALL)
+
+$(SYNC): pyproject.toml
+	uv sync || pip install uv && uv sync
+	@touch $(SYNC)
+
+install: $(SYNC)
+	
+run: install
 	$(PYTHON) $(MAIN) $(CONFIG)
 
-debug:
-	$() -n pdb $(MAIN) $(CONFIG)
+debug: $(SYNC)
+	$(PYTHON) -n pdb $(MAIN) $(CONFIG)
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 	rm -rf .mypy_cache
 	rm -rf .pytest_cache
-	rm -rf build
-	rm -rf dist
-	rm -rf *.egg-info
+	rm -rf .ruff_cache
+	rm -f maze.txt
 
-lint:
+lint: $(SYNC)
+	ruff check
 	flake8 .
-	mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports -
+	mypy . \
+		--warn-return-any \
+		--warn-unused-ignores \
+		--ignore-missing-imports \
+		--disallow-untyped-defs \
+		--check-untyped-defs
 
-lint-strict:
+lint-strict: $(SYNC)
+	ruff check 
 	flake8 .
 	mypy . --strict
 

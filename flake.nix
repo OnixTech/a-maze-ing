@@ -17,13 +17,13 @@
           fontLibs = with pkgs; [ freetype fontconfig ];
         in {
           devShells.default = pkgs.mkShell {
-            packages = [ pkgs.python311 pkgs.uv ] ++ glLibs ++ x11Libs ++ fontLibs;
+            packages = with pkgs; [ python313 uv ruff python313Packages.flake8 python313Packages.mypy ] ++ glLibs ++ x11Libs ++ fontLibs;
             env = {
               LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath (
                 [ pkgs.stdenv.cc.cc.lib ] ++ glLibs ++ x11Libs ++ fontLibs
               );
               UV_PYTHON_DOWNLOADS = "never";
-              UV_PYTHON = "${pkgs.python311}/bin/python3.11";
+              UV_PYTHON = "${pkgs.python313}/bin/python3.13";
             };
           };
         };
