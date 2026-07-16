@@ -1,0 +1,7 @@
+[project]
+name = "a-maze-ing"
+version = "0.1.0"
+description = "A maze generation and solving package/program."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
