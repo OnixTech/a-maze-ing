@@ -51,6 +51,9 @@ class ConfigParser:
         # Tupple checking
         self._tuple_validation(config)
 
+        # Validate coordinates
+        self._coordinates_validator()
+
         # Output file chicking
         file = config["OUTPUT_FILE"].split(".")
         if len(file) != 2:
@@ -81,3 +84,13 @@ class ConfigParser:
             raise ValueError(
                 "Entry and EXIT coordinates must be integers"
             ) from err
+
+    def _coordinates_validator(self) -> None:
+        if self.entry[0] < 0 or self.entry[1] < 0:
+            raise ValueError("Coordenates cannot be negatives")
+        if self.entry[0] > self.width or self.entry[1] > self.height:
+            raise ValueError("Coordinates must be inside the maze")
+        if self.exit[0] < 0 or self.exit[1] < 0:
+            raise ValueError("Coordenates cannot be negatives")
+        if self.exit[0] > self.width or self.exit[1] > self.height:
+            raise ValueError("Coordinates must be inside the maze")
