@@ -1,0 +1,23 @@
+[project]
+name = "a-maze-ing"
+version = "0.2.2"
+description = "A maze generation and solving package & program."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "pydantic>=2.13.4",
+    "mlx"
+]
+
+[tool.uv.sources]
+mlx = { path = "wheels/mlx-2.2-py3-none-any.whl" }
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[tool.ruff]
+line-length = 79
+[tool.ruff.lint]
+select = ["E", "F", "B", "I"]
