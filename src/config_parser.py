@@ -3,11 +3,29 @@ from pathlib import Path
 
 
 class ParserError(Exception):
+    """
+    Exception raised for errors encountered during configuration parsing or
+    validation.
+    """
+
     pass
 
 
 class ConfigParser:
+    """
+    Parses and validates maze configuration files with key parameters such as
+    WIDTH, HEIGHT, ENTRY, EXIT, OUTPUT_FILE, and PERFECT. Provides methods for
+    loading and validating configuration data.
+    """
+
     def __init__(self, filename: str) -> None:
+        """
+        Initialize the ConfigParser with default maze values and the given
+        configuration file.
+
+        Args:
+            filename (str): Path to the configuration file to parse.
+        """
         self.width: int = 20
         self.height: int = 20
         self.entry: tuple[int, int] = (0, 0)
@@ -16,12 +34,32 @@ class ConfigParser:
         self.filename: str = filename
 
     def load(self) -> dict[str, str]:
+        """
+        Load and parse the configuration file, then validate its contents.
+
+        Returns:
+            dict[str, str]: Dictionary containing configuration key-value
+            pairs.
+
+        Raises:
+            ParserError: If the file is not accessible, malformed, or fails
+            validation.
+        """
         config = self._parse()
         self._validate(config)
 
         return config
 
     def _parse(self) -> dict[str, str]:
+        """
+        Internal method to parse the configuration file.
+
+        Returns:
+            dict[str, str]: Configuration parameters as key-value pairs.
+
+        Raises:
+            ParserError: If a line is malformed or the file is not accessible.
+        """
         config: dict[str, str] = {}
 
         try:
@@ -46,6 +84,16 @@ class ConfigParser:
         return config
 
     def _validate(self, config: dict[str, str]) -> None:
+        """
+        Internal method to validate the parsed configuration dictionary.
+
+        Args:
+            config (dict[str, str]): Parsed configuration key-value pairs.
+
+        Raises:
+            ParserError: If any required key is missing, has invalid value, or
+            if there are unknown keys.
+        """
         # Keys Expected
         keys = ["WIDTH", "HEIGHT", "ENTRY", "EXIT", "OUTPUT_FILE", "PERFECT"]
 
@@ -87,6 +135,17 @@ class ConfigParser:
             )
 
     def _validate_width_height(self, width: str, height: str) -> None:
+        """
+        Internal method to validate WIDTH and HEIGHT values from the
+        configuration.
+
+        Args:
+            width (str): Width value as string from config.
+            height (str): Height value as string from config.
+
+        Raises:
+            ParserError: If values are not integers or not in [0, 800].
+        """
         for name, value in zip(
             ["WIDTH", "HEIGHT"],
             [width, height],
@@ -101,6 +160,17 @@ class ConfigParser:
                 raise ParserError(f"{name} must be between 0 and 800: {v}")
 
     def _validate_coordinates(self, config: dict[str, str]) -> None:
+        """
+        Internal method to validate ENTRY and EXIT coordinates.
+
+        Args:
+            config (dict[str, str]): Configuration dictionary containing ENTRY
+            and EXIT.
+
+        Raises:
+            ParserError: If format or values of ENTRY or EXIT are invalid or
+            out of maze bounds.
+        """
         for name, value in zip(
             ["ENTRY", "EXIT"],
             [config["ENTRY"], config["EXIT"]],
