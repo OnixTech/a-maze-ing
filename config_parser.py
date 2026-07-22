@@ -39,7 +39,9 @@ class ConfigParser:
                         raise ParserError(f"Extraneous value: {line}") from err
 
         except OSError as err:
-            ParserError(f"{self.filename} not accessible: {err}")
+            raise ParserError(
+                f"{self.filename} not accessible: {err}"
+            ) from err
 
         return config
 
@@ -101,7 +103,7 @@ class ConfigParser:
     def _validate_coordinates(self, config: dict[str, str]) -> None:
         for name, value in zip(
             ["ENTRY", "EXIT"],
-            [config["ENTRY"], config["ENTRY"]],
+            [config["ENTRY"], config["EXIT"]],
             strict=False,
         ):
             # Validate format
