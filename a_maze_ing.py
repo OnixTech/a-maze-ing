@@ -1,4 +1,4 @@
-import config_parser
+from config_parser import ConfigParser, ParserError
 
 
 class Cell:
@@ -11,11 +11,11 @@ class MazeGenerator:
     def __init__(self, width: int, height: int) -> None:
         self.width = width
         self.height = height
-        self.grid = []
+        self.grid: list[list[Cell]] = []
 
     def create_grid(self) -> None:
         for _ in range(self.height):
-            row = []
+            row: list[Cell] = []
 
             for _ in range(self.width):
                 row.append(Cell())
@@ -32,8 +32,12 @@ class MazeGenerator:
 
 
 def main() -> None:
-    config = config_parser.ConfigParser("default_config.txt")
-    config.load()
+    try:
+        config = ConfigParser("default_config.txt")
+        config.load()
+    except ParserError as err:
+        print(err)
+        return
 
     maze = MazeGenerator(config.width, config.height)
     maze.create_grid()

@@ -1,3 +1,11 @@
+import os
+from pathlib import Path
+
+
+class ParserError(Exception):
+    pass
+
+
 class ConfigParser:
     def __init__(self, filename: str) -> None:
         self.width: int = 20
@@ -9,88 +17,109 @@ class ConfigParser:
 
     def load(self) -> dict[str, str]:
         config = self._parse()
-        self._validation(config)
+        self._validate(config)
 
         return config
 
     def _parse(self) -> dict[str, str]:
         config: dict[str, str] = {}
-        with open(self.filename, "r", encoding="utf-8") as file:
-            for line in file:
-                line = line.strip()
 
-                if not line or line.startswith("#"):
-                    continue
+        try:
+            with open(self.filename) as file:
+                for line in file:
+                    line = line.strip()
 
-                key, value = line.split("=")
-                config[key] = value
+                    if not line or line.startswith("#"):
+                        continue
+
+                    try:
+                        key, value = line.split("=")
+                        config[key.strip()] = value.strip()
+                    except ValueError as err:
+                        raise ParserError(f"Extraneous value: {line}") from err
+
+        except OSError as err:
+            ParserError(f"{self.filename} not accessible: {err}")
 
         return config
 
-    def _validation(self, config: dict[str, str]) -> None:
+    def _validate(self, config: dict[str, str]) -> None:
         # Keys Expected
         keys = ["WIDTH", "HEIGHT", "ENTRY", "EXIT", "OUTPUT_FILE", "PERFECT"]
 
+        # Check if all mandatory keys are available
         for key in keys:
             if key not in config:
-                raise ValueError(f"Missing key: {key}")
+                raise ParserError(f"Missing key: {key}")
 
+        # Check for alien keys
         for key in config:
             if key not in keys:
-                raise ValueError(f"Unknown key: {key}")
+                raise ParserError(f"Unknown key: {key}")
 
-        # Values checking for WIDTH and HEIGHT
-        try:
-            self.width = int(config["WIDTH"])
-            self.height = int(config["HEIGHT"])
-        except ValueError as err:
-            raise ValueError(
-                "WIDTH and HeIGHT must be integers"
-            ) from err
+        self._validate_width_height(config["WIDTH"], config["HEIGHT"])
 
-        # Tupple checking
-        self._tuple_validation(config)
+        # save the validated width and height
+        self.width = int(config["WIDTH"])
+        self.height = int(config["HEIGHT"])
 
         # Validate coordinates
-        self._coordinates_validator()
+        self._validate_coordinates(config)
 
-        # Output file chicking
-        file = config["OUTPUT_FILE"].split(".")
-        if len(file) != 2:
-            raise ValueError("OUTPUT_FILE must be 'filename.txt'")
-        else:
-            if file[1] != "txt":
-                raise ValueError("File format must be 'txt'")
+        # Save the validated coordinates
+        entry_x, entry_y = config["ENTRY"].split(",")
+        self.entry = int(entry_x), int(entry_y)
+        exit_x, exit_y = config["EXIT"].split(",")
+        self.exit = int(exit_x), int(exit_y)
 
-        # Perfect checking
+        # Check if OUTPUT_FILE is writable
+        output_file = Path(config["OUTPUT_FILE"])
+        if output_file.exists() and not os.access(output_file, os.W_OK):
+            raise ParserError(f"OUTPUT_FILE '{output_file}' is not writable")
+
+        # Check if PERFECT value is valid
         booleans = ["True", "False"]
         if config["PERFECT"] not in booleans:
-            raise ValueError("PERFECT must be 'True' or 'False'")
+            raise ParserError(
+                f"PERFECT must be 'True' or 'False': {config['PERFECT']}"
+            )
 
-    def _tuple_validation(self, config: dict[str, str]) -> None:
-        entry = config["ENTRY"].split(",")
-        exit_point = config["EXIT"].split(",")
+    def _validate_width_height(self, width: str, height: str) -> None:
+        for name, value in zip(
+            ["WIDTH", "HEIGHT"],
+            [width, height],
+            strict=False,
+        ):
+            try:
+                v = int(value)
+            except ValueError as err:
+                raise ParserError(f"{name} must be integer: {value}") from err
 
-        if len(entry) != 2:
-            raise ValueError("ENTRY must have format x,y")
+            if 0 > v > 800:
+                raise ParserError(f"{name} must be between 0 and 800: {v}")
 
-        if len(exit_point) != 2:
-            raise ValueError("EXIT must have format x,y")
+    def _validate_coordinates(self, config: dict[str, str]) -> None:
+        for name, value in zip(
+            ["ENTRY", "EXIT"],
+            [config["ENTRY"], config["ENTRY"]],
+            strict=False,
+        ):
+            # Validate format
+            try:
+                x_str, y_str = value.split(",")
+            except ValueError as err:
+                raise ParserError(
+                    f"{name} must have fomat of 'x,y': {value}"
+                ) from err
 
-        try:
-            self.entry = (int(entry[0]), int(entry[1]))
-            self.exit_point = (int(exit_point[0]), int(exit_point[1]))
-        except ValueError as err:
-            raise ValueError(
-                "Entry and EXIT coordinates must be integers"
-            ) from err
+            # Check if not int
+            try:
+                x, y = int(x_str), int(y_str)
+            except ValueError as err:
+                raise ParserError(
+                    f"{name} must have valid integers: {value}"
+                ) from err
 
-    def _coordinates_validator(self) -> None:
-        if self.entry[0] < 0 or self.entry[1] < 0:
-            raise ValueError("Coordenates cannot be negatives")
-        if self.entry[0] > self.width or self.entry[1] > self.height:
-            raise ValueError("Coordinates must be inside the maze")
-        if self.exit[0] < 0 or self.exit[1] < 0:
-            raise ValueError("Coordenates cannot be negatives")
-        if self.exit[0] > self.width or self.exit[1] > self.height:
-            raise ValueError("Coordinates must be inside the maze")
+            # Check if coordinates are valid for the maze
+            if 0 > x > self.width or 0 > y > self.height:
+                raise ParserError(f"{name} must be within the maze: {value}")

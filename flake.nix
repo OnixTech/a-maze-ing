@@ -38,6 +38,9 @@
             packages = [
               pkgs.python313
               pkgs.uv
+              pkgs.ruff
+              pkgs.mypy
+              pkgs.python313Packages.flake8
             ]
             ++ pkgs.lib.optionals pkgs.stdenv.isLinux (glLibs ++ x11Libs ++ fontLibs);
             env = {
