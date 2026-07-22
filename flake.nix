@@ -1,5 +1,5 @@
 {
-  description = "Nix flake for fly-in";
+  description = "Nix flake for a-maze-ing";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
@@ -39,36 +39,17 @@
               pkgs.python313
               pkgs.uv
               pkgs.ruff
-              pkgs.mypy
-              pkgs.python313Packages.flake8
             ]
-            ++ pkgs.lib.optionals pkgs.stdenv.isLinux (glLibs ++ x11Libs ++ fontLibs);
+            ++ glLibs
+            ++ x11Libs
+            ++ fontLibs;
             env = {
+              LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath (
+                [ pkgs.stdenv.cc.cc.lib ] ++ glLibs ++ x11Libs ++ fontLibs
+              );
               UV_PYTHON_DOWNLOADS = "never";
               UV_PYTHON = "${pkgs.python313}/bin/python3.13";
-            }
-            // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
-              LD_LIBRARY_PATH =
-                "/run/opengl-driver/lib:/run/opengl-driver-32/lib:"
-                + pkgs.lib.makeLibraryPath ([ pkgs.stdenv.cc.cc.lib ] ++ glLibs ++ x11Libs ++ fontLibs);
             };
-            shellHook = ''
-              # Clean PATH to remove directories containing compilers/linkers (gcc, g++, ld, cc, clang, ar)
-              # This prevents ctypes.util.find_library from performing slow compilation/linkage subprocess checks on NixOS,
-              # dropping the startup time of pyglet/arcade from 9+ seconds to instant (0.25 seconds).
-              NEW_PATH=""
-              IFS=':' read -ra ADDR <<< "$PATH"
-              for p in "''${ADDR[@]}"; do
-                if [ -d "$p" ] && [ ! -f "$p/gcc" ] && [ ! -f "$p/g++" ] && [ ! -f "$p/ld" ] && [ ! -f "$p/cc" ] && [ ! -f "$p/clang" ] && [ ! -f "$p/ar" ]; then
-                  if [ -z "$NEW_PATH" ]; then
-                    NEW_PATH="$p"
-                  else
-                    NEW_PATH="$NEW_PATH:$p"
-                  fi
-                fi
-              done
-              export PATH="$NEW_PATH"
-            '';
           };
       });
     };

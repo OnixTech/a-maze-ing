@@ -1,4 +1,4 @@
-from config_parser import ConfigParser, ParserError
+from src.config_parser import ConfigParser, ParserError
 
 
 class Cell:
