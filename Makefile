@@ -3,8 +3,9 @@ MAIN := a_maze_ing.py
 CONFIG := default_config.txt
 
 SRC = $(MAIN) \
-	./src/config_parser.py \
-	./tests/test_config_parser.py
+	./src/parser.py \
+	./src/models.py \
+	./tests/test_parser.py
 
 SYNC := .synced
 

@@ -1,4 +1,5 @@
-from src.config_parser import ConfigParser, ParserError
+from src.models import ParseError
+from src.parser import Parser
 
 
 class Cell:
@@ -33,15 +34,15 @@ class MazeGenerator:
 
 def main() -> None:
     try:
-        config = ConfigParser("default_config.txt")
-        config.load()
-    except ParserError as err:
+        parser = Parser()
+        config = parser.parse()
+        print(config)
+    except ParseError as err:
         print(err)
-        return
 
-    maze = MazeGenerator(config.width, config.height)
-    maze.create_grid()
-    maze.export("maze.txt")
+    # maze = MazeGenerator(config.width, config.height)
+    # maze.create_grid()
+    # maze.export("maze.txt")
 
 
 if __name__ == "__main__":
